@@ -1,6 +1,10 @@
 package validation
 
 import (
+	"encoding/json"
+	"errors"
+
+	errorhandler "github.com/JMustang/contatos-go/src/config/error_handler"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
@@ -20,5 +24,32 @@ func init() {
 		unt := ut.New(en, en)
 		transl, _ = unt.GetTranslator("en")
 		en_translation.RegisterDefaultTranslations(val, transl)
+	}
+}
+
+func ValidateUserError(
+	validation_err error,
+) *errorhandler.HandlerErr {
+
+	var jsonErr *json.UnmarshalTypeError
+	var jsonValidationError validator.ValidationErrors
+
+	if errors.As(validation_err, &jsonErr) {
+		return errorhandler.NewBadRequestError("Invalid field type")
+	} else if errors.As(validation_err, &jsonValidationError) {
+		errorsCauses := []errorhandler.Causes{}
+
+		for _, e := range validation_err.(validator.ValidationErrors) {
+			cause := errorhandler.Causes{
+				Message: e.Translate(transl),
+				Field:   e.Field(),
+			}
+
+			errorsCauses = append(errorsCauses, cause)
+		}
+		return errorhandler.NewBadRequestValidationError("Some fields are invalid", errorsCauses)
+	} else {
+		return errorhandler.NewBadRequestError("Error trying to convert fields")
+
 	}
 }
