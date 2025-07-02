@@ -33,8 +33,13 @@ func init() {
 	log, _ = logConfig.Build()
 }
 
+func Info(message string, tags ...zap.Field) {
+	log.Info(message, tags...)
+	log.Sync()
+}
+
 func getOutputLogs() string {
-	output := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_OUTPUT")))
+	output := strings.ToLower(strings.TrimSpace(os.Getenv(LOG_OUTPUT)))
 	if output == "" {
 		return "stdout"
 	}
@@ -43,7 +48,7 @@ func getOutputLogs() string {
 }
 
 func getLevelLogs() zapcore.Level {
-	switch strings.ToLower(strings.TrimSpace(os.Getenv("LOG_LEVEL"))) {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(LOG_LEVEL))) {
 	case "info":
 		return zapcore.InfoLevel
 	case "error":
