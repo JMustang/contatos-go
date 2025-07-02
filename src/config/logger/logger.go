@@ -1,6 +1,9 @@
 package logger
 
 import (
+	"os"
+	"strings"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -28,4 +31,13 @@ func init() {
 	}
 
 	log, _ = logConfig.Build()
+}
+
+func getOutputLogs() string {
+	output := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_OUTPUT")))
+	if output == "" {
+		return "stdout"
+	}
+
+	return output
 }
